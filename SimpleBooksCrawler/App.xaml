@@ -1,0 +1,9 @@
+﻿<Application x:Class="SimpleBooksCrawler.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SimpleBooksCrawler"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush x:Key="ThemeAccentColor" Color="#FF1B6A25" />
+    </Application.Resources>
+</Application>

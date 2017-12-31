@@ -1,0 +1,108 @@
+﻿<Window x:Class="SimpleBooksCrawler.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleBooksCrawler"
+        xmlns:ViewModels="clr-namespace:SimpleBooksCrawler.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+
+    <Window.DataContext>
+        <ViewModels:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid x:Name="RootGrid">
+        
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" BorderBrush="{DynamicResource ThemeAccentColor}" BorderThickness="0,0,0,3">
+
+            <Grid x:Name="LogoGrid">
+                <Image Source="/AutoLoginUspnet;component/Assets/AutoLoginUSPnet Logo_50px.png" />
+
+            </Grid>
+
+        </Border>
+
+        <Grid x:Name="ContentGrid" Grid.Row="1" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Login Info -->
+            <Grid x:Name="LeftGrid" Grid.Column="0" Margin="5">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Button x:Name="CrawlMetadata" Grid.Row="1" Grid.Column="0" Margin="5,0,0,0" Command="{Binding CrawlMetadataCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
+                    <ContentControl>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="Process_64x.png" Width="28px" />
+                            <Label Content="Crawl Metadata" />
+                        </StackPanel>
+                    </ContentControl>
+                </Button>
+
+                <Button x:Name="LoadBooksCSVButton" Grid.Row="2" Grid.Column="0" Margin="5,0,0,0" Command="{Binding LoadBooksCSVCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
+                    <ContentControl>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="VS2015 Image LibraryF12_Folder_28x.png" Width="28px" />
+                            <Label Content="Load Books CSV" />
+                        </StackPanel>
+                    </ContentControl>
+                </Button>
+
+            </Grid>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Center" Width="2px" />
+
+            <!-- Connection Status -->
+            <Grid x:Name="RightGrid" Grid.Column="2" Margin="5">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <DataGrid ItemsSource="{Binding Books}"
+                          Grid.RowSpan="2"
+                          VerticalAlignment="Top"
+                          Grid.Row="0"
+                          Height="{Binding ActualHeight, ElementName=RightGrid}"
+                          Width="{Binding ActualWidth, ElementName=RightGrid}"
+                          AutoGenerateColumns="True">
+                    
+                </DataGrid>
+
+
+
+            </Grid>
+
+
+        </Grid>
+
+        <GridSplitter Height="5px" HorizontalAlignment="Stretch" Background="#00DEDEDE" Grid.Row="2" />
+
+        <!-- Trace Grid -->
+        <Grid x:Name="TraceGrid" Grid.Row="3">
+            <TextBox x:Name="TraceOutputTextBox" TextWrapping="Wrap" IsReadOnly="True" UndoLimit="1" />
+        </Grid>
+
+        <!-- Footer -->
+        <Grid x:Name="FooterGrid" Grid.Row="4" Background="{DynamicResource ThemeAccentColor}">
+            <Label Content="" Margin="5" Foreground="White" />
+        </Grid>
+
+    </Grid>
+</Window>
