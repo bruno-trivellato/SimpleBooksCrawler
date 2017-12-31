@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleBooksCrawler"
         xmlns:ViewModels="clr-namespace:SimpleBooksCrawler.ViewModels"
+        xmlns:Views="clr-namespace:SimpleBooksCrawler.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="400" Width="700">
 
     <Window.DataContext>
         <ViewModels:MainWindowViewModel />
@@ -56,14 +57,33 @@
                     </ContentControl>
                 </Button>
 
-                <Button x:Name="LoadBooksCSVButton" Grid.Row="2" Grid.Column="0" Margin="5,0,0,0" Command="{Binding LoadBooksCSVCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
-                    <ContentControl>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="VS2015 Image LibraryF12_Folder_28x.png" Width="28px" />
-                            <Label Content="Load Books CSV" />
-                        </StackPanel>
-                    </ContentControl>
-                </Button>
+                <Grid x:Name="SettingsGrid" Grid.Row="2" VerticalAlignment="Center" Margin="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="5px" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <Label x:Name="CSVBooksPathLabel" Grid.Column="0" Content="CSV Books Path" HorizontalAlignment="Center" />
+                    <TextBox x:Name="CSVBooksPathTextBox" Grid.Column="1" Text="{Binding BooksCSVPath, Mode=TwoWay}" IsReadOnly="True" />
+                    <Button x:Name="CSVBooksPathButton" Grid.Column="2" Margin="5,0,0,0" Command="{Binding LoadBooksCSVCommand}" Padding="5,1" Width="100">
+                        <ContentControl>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="VS2015 Image LibraryF12_Folder_28x.png" Width="28px" />
+                                <Label Content="Change" />
+                            </StackPanel>
+                        </ContentControl>
+                    </Button>
+
+                </Grid>
+                
+                
 
             </Grid>
 
@@ -96,7 +116,7 @@
 
         <!-- Trace Grid -->
         <Grid x:Name="TraceGrid" Grid.Row="3">
-            <TextBox x:Name="TraceOutputTextBox" TextWrapping="Wrap" IsReadOnly="True" UndoLimit="1" />
+            <TextBox Views:MainWindow.ScrollOnTextChanged="True" x:Name="TraceOutputTextBox" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" IsReadOnly="True" UndoLimit="1" />
         </Grid>
 
         <!-- Footer -->

@@ -26,6 +26,27 @@ namespace SimpleBooksCrawler.ViewModels
             }
         }
 
+        private string _BooksCSVPath;
+
+        public string BooksCSVPath
+        {
+            get { return _BooksCSVPath; }
+            set
+            {
+                SetProperty(ref _BooksCSVPath, value);
+            }
+        }
+
+        private String _LastTraceMessage;
+        public String LastTraceMessage
+        {
+            get { return _LastTraceMessage; }
+            set
+            {
+                SetProperty(ref _LastTraceMessage, value);
+            }
+        }
+
 
         private RelayCommand _CrawlMetadataCommand;
 
@@ -76,16 +97,8 @@ namespace SimpleBooksCrawler.ViewModels
                           {
                               BooksHandler.Instance.LoadBooksFromCSV(dialog.FileName);
 
-                              //if (SettingsHandler.Instance.IsElfbotPath(dialog.FileName))
-                              //{
-                              //    SettingsHandler.Instance.ChangeElfbotPath(dialog.FileName);
+                              SettingsHandler.Instance.ChangeCSVBooksPath(dialog.FileName);
 
-                              //}
-                              //else
-                              //{
-                              //    MessageBox.Show("Folder doesn't contain Elfbot's executable (loader.exe).", "Error",
-                              //    MessageBoxButton.OK, MessageBoxImage.Error);
-                              //}
                           }
                       },
                       () =>
@@ -101,6 +114,27 @@ namespace SimpleBooksCrawler.ViewModels
         public MainWindowViewModel()
         {
             this.Books = BooksHandler.Instance.Books;
+
+            TraceHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged; ;
+            SettingsHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged;
+        }
+
+        private void Instance_ServicePropertyChanged(object sender, BaseService.ServicePropertyChangedEventArgs e)
+        {
+            
+            if (e.ServicePropertyName == nameof(TraceHandler.Instance.TraceListener))
+            {
+                var message = (String)e.ServicePropertyValue;
+                this.LastTraceMessage = message;
+            }
+
+
+            if (e.ServicePropertyName == nameof(AppSettings.BooksCSVPath))
+            {
+                this.BooksCSVPath = (String)e.ServicePropertyValue;
+            }
+
+            
         }
 
     }
