@@ -3,6 +3,7 @@ using SimpleBooksCrawler.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -65,7 +66,7 @@ namespace SimpleBooksCrawler.Services
             HttpResponseMessage response = null;
             try
             {
-                response = await this.httpClient.GetAsync(String.Format("https://www.amazon.com/gp/search/ref=sr_adv_b/?search-alias=stripbooks&unfiltered=1&field-keywords=&field-author=&field-title=&field-isbn={0}&field-publisher=&node=&field-p_n_condition-type=&p_n_feature_browse-bin=&field-age_range=&field-language=&field-dateop=During&field-datemod=&field-dateyear=&sort=relevanceexprank&Adv-Srch-Books-Submit.x=52&Adv-Srch-Books-Submit.y=6", book.ISBN));
+                response = await this.httpClient.GetAsync(String.Format("https://www.amazon.com/gp/aw/s/ref=is_s?n=283155&n=283155&k={0}", book.ISBN));
             }
             catch (HttpRequestException ex)
             {
@@ -91,7 +92,8 @@ namespace SimpleBooksCrawler.Services
         {
             if (resultsListNode != null)
             {
-                return resultsListNode.ChildNodes.Count;
+                
+                return resultsListNode.SelectNodes("//li[contains(@class, 'sx-table-item')]").Count;
             }
 
             return 0;
@@ -104,7 +106,7 @@ namespace SimpleBooksCrawler.Services
         /// <returns></returns>
         private HtmlNode GetResultsListNode(HtmlDocument searchPageHtml)
         {
-            HtmlNode resultsListNode = searchPageHtml.GetElementbyId("s-results-list-atf");
+            HtmlNode resultsListNode = searchPageHtml.GetElementbyId("resultItems");
 
             return resultsListNode;
         }
@@ -119,9 +121,14 @@ namespace SimpleBooksCrawler.Services
             HtmlDocument searchPageHtml = await RetrieveSearchPageHtmlAsync(book);
             HtmlNode resultsListNode = GetResultsListNode(searchPageHtml);
 
-            if (CountSearchResults(resultsListNode) == 1)
+            Int32 searchResults = CountSearchResults(resultsListNode);
+
+            if (searchResults == 1)
             {
-                return resultsListNode.ChildNodes.First();
+                return resultsListNode.SelectSingleNode("//li[contains(@class, 'sx-table-item')][1]");
+            } else if (searchResults > 1)
+            {
+                // TODO: handle if more than one book was found.
             }
 
             return null;
@@ -129,9 +136,10 @@ namespace SimpleBooksCrawler.Services
 
         private String FindDetailsPageUrl(HtmlNode bookNode)
         {
-            HtmlNode detailsUrlNode = bookNode.SelectSingleNode("//a[contains(@class, 's-access-detail-page')]");
+            HtmlNode detailsUrlNode = bookNode.SelectSingleNode(bookNode.XPath + "/a[1]");
+            String hrefAttribute = detailsUrlNode.Attributes.Where(attr => attr.Name == "href").First().Value;
 
-            return detailsUrlNode.Attributes.Where(attr => attr.Name == "href").First().Value;
+            return String.Format("https://www.amazon.com{0}", hrefAttribute);
         }
 
         private async Task<Boolean> CrawlBooksMetadata(Book book, String detailsUrl)
@@ -153,25 +161,107 @@ namespace SimpleBooksCrawler.Services
             HtmlDocument html = new HtmlDocument();
             html.LoadHtml(responseAsString);
 
-            // Get Title
-            HtmlNode titleNode = html.GetElementbyId("productTitle");
-            book.Title = HttpUtility.HtmlDecode(titleNode.InnerText);
-
-            // Get Author
-            HtmlNode authorNode = html.DocumentNode.SelectSingleNode("//span[contains(@class, 'author')][1]/span[1]/a[1]");
-            book.Author = authorNode.InnerText;
-
-            // Get Publisher
-            HtmlNode publisherNode = html.DocumentNode.SelectSingleNode("//li[b='Publisher:']/text()");
-            book.Publisher = publisherNode.InnerText.TrimStart();
-
-            // Get Description
-
-            HtmlNode descriptionNode = html.DocumentNode.SelectSingleNode("//div[@id='productDescription']//p");
-            book.Description = descriptionNode.InnerText;
-
+            CrawlBooksTitle(html, book);
+            CrawlBooksAuthor(html, book);
+            CrawlBooksPublisher(html, book);
+            CrawlBooksYear(html, book);
+            CrawlBooksDescription(html, book);
 
             return true;
+        }
+
+        private void CrawlBooksTitle(HtmlDocument booksHtmlPage, Book book)
+        {
+            HtmlNode titleNode = booksHtmlPage?.GetElementbyId("title");
+            if(titleNode != null)
+            {
+                book.Title = HttpUtility.HtmlDecode(titleNode.InnerText).Trim();
+            } else
+            {
+                book.Title = "NOT FOUND";
+            }
+            
+        }
+
+        private void CrawlBooksAuthor(HtmlDocument booksHtmlPage, Book book)
+        {
+            HtmlNode authorsNode = booksHtmlPage.GetElementbyId("byline");
+            String booksAuthor = "";
+            if (authorsNode != null)
+            {
+                if(authorsNode.Descendants().Count() == 4) // One author scenario
+                {
+                    booksAuthor = authorsNode.ChildNodes[1].InnerText.Trim();
+                    
+
+                } else if(authorsNode.Descendants().Count() > 4) // Two authors or more scenario
+                {
+                    // count == 16
+                    booksAuthor = authorsNode.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1].InnerText.Trim();
+                }
+                
+            } else
+            {
+                booksAuthor = "NOT FOUND";
+            }
+
+            book.Author = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(booksAuthor.ToLower());
+
+
+        }
+
+        private void CrawlBooksPublisher(HtmlDocument booksHtmlPage, Book book)
+        {
+            HtmlNode booksProductInformationTableNode = booksHtmlPage.GetElementbyId("productDetails_techSpec_section_1");
+
+            if(booksProductInformationTableNode != null)
+            {
+                HtmlNode publisherHeaderNode = booksProductInformationTableNode.SelectSingleNode(booksProductInformationTableNode.XPath + "//tr/th/text()[contains(.,'Publisher')]");
+                HtmlNode publisherValueNode = publisherHeaderNode.ParentNode.ParentNode.ChildNodes[3];
+
+                book.Publisher = publisherValueNode.InnerText.Trim();
+            } else
+            {
+                book.Publisher = "NOT FOUND";
+            }
+        }
+
+        private void CrawlBooksYear(HtmlDocument booksHtmlPage, Book book)
+        {
+            HtmlNode booksProductInformationTableNode = booksHtmlPage.GetElementbyId("productDetails_techSpec_section_1");
+
+            if(booksProductInformationTableNode != null)
+            {
+                HtmlNode yearHeaderNode = booksProductInformationTableNode.SelectSingleNode(booksProductInformationTableNode.XPath + "//tr/th/text()[contains(.,'Publication date')]");
+                HtmlNode yearValueNode = yearHeaderNode.ParentNode.ParentNode.ChildNodes[3];
+
+                String yearValueText = yearValueNode.InnerText.Trim();
+
+                DateTime dateValue;
+                if( DateTime.TryParse(yearValueText, out dateValue))
+                {
+                    book.Year = dateValue.Year;
+                } else
+                {
+                    Trace.WriteLine(String.Format("[Warning] Not a date on book of ISBN: {0}. Crawled the following: '{1}'", book.ISBN, yearValueText));
+                }
+            } else
+            {
+                //
+            }
+            
+        }
+
+        private void CrawlBooksDescription(HtmlDocument booksHtmlPage, Book book)
+        {
+            HtmlNode booksDescriptionNode = booksHtmlPage.GetElementbyId("productDescription_fullView");
+            if(booksDescriptionNode != null)
+            {
+                book.Description = HttpUtility.HtmlDecode( booksDescriptionNode.ChildNodes[1].InnerText.Trim() );
+            } else
+            {
+                book.Description = "NOT FOUND";
+            }
         }
         
     }
