@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CsvHelper, Version=6.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
+      <HintPath>..\packages\CsvHelper.6.1.0\lib\net45\CsvHelper.dll</HintPath>
+    </Reference>
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
@@ -81,14 +84,17 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Common\BindableBase.cs" />
+    <Compile Include="Common\HttpRequestHelper.cs" />
     <Compile Include="Common\LogHelper.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\Serializer.cs" />
     <Compile Include="Models\AppSettings.cs" />
     <Compile Include="Models\Book.cs" />
     <Compile Include="Models\StringTraceListener.cs" />
+    <Compile Include="Services\AmazonCrawler.cs" />
     <Compile Include="Services\BaseService.cs" />
     <Compile Include="Services\BooksHandler.cs" />
+    <Compile Include="Services\ICrawler.cs" />
     <Compile Include="Services\SettingsHandler.cs" />
     <Compile Include="Services\TraceHandler.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
@@ -115,6 +121,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

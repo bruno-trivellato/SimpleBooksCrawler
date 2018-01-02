@@ -66,6 +66,12 @@ namespace SimpleBooksCrawler.Views
             {
                 this.TraceOutputTextBox.AppendText(this.ViewModel.LastTraceMessage);
             }
+
+            if (e.PropertyName == nameof(this.ViewModel.Books))
+            {
+                this.BooksDataGrid.Items.Refresh();
+            }
+
         }
 
         static readonly Dictionary<TextBox, Capture> _associations = new Dictionary<TextBox, Capture>();

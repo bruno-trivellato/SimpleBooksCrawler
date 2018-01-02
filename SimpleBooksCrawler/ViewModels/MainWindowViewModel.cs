@@ -48,6 +48,17 @@ namespace SimpleBooksCrawler.ViewModels
         }
 
 
+        private Boolean _CanExecuteMetadataCrawling;
+        public Boolean CanExecuteMetadataCrawling
+        {
+            get { return _CanExecuteMetadataCrawling; }
+            set
+            {
+                SetProperty(ref _CanExecuteMetadataCrawling, value);
+            }
+        }
+
+
         private RelayCommand _CrawlMetadataCommand;
 
         public RelayCommand CrawlMetadataCommand
@@ -59,14 +70,14 @@ namespace SimpleBooksCrawler.ViewModels
                     _CrawlMetadataCommand = new RelayCommand(
                       () =>
                       {
-                          
-                            BooksHandler.Instance.CrawlMetadataAsync();
+
+                          BooksHandler.Instance.CrawlMetadataAsync();
                           
                           
                       },
                       () =>
                       {
-                          return true;
+                          return this.CanExecuteMetadataCrawling;
                       });
                     this.PropertyChanged += (s, e) => _CrawlMetadataCommand.RaiseCanExecuteChanged();
                 }
@@ -103,7 +114,7 @@ namespace SimpleBooksCrawler.ViewModels
                       },
                       () =>
                       {
-                          return true;
+                          return this.CanExecuteMetadataCrawling;
                       });
                     this.PropertyChanged += (s, e) => _LoadBooksCSVCommand.RaiseCanExecuteChanged();
                 }
@@ -114,9 +125,11 @@ namespace SimpleBooksCrawler.ViewModels
         public MainWindowViewModel()
         {
             this.Books = BooksHandler.Instance.Books;
+            this.CanExecuteMetadataCrawling = BooksHandler.Instance.CanExecuteMetadataCrawling;
 
             TraceHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged; ;
             SettingsHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged;
+            BooksHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged;
         }
 
         private void Instance_ServicePropertyChanged(object sender, BaseService.ServicePropertyChangedEventArgs e)
@@ -134,6 +147,10 @@ namespace SimpleBooksCrawler.ViewModels
                 this.BooksCSVPath = (String)e.ServicePropertyValue;
             }
 
+            if(e.ServicePropertyName == nameof(BooksHandler.Instance.CanExecuteMetadataCrawling))
+            {
+                this.CanExecuteMetadataCrawling = BooksHandler.Instance.CanExecuteMetadataCrawling;
+            }
             
         }
 

@@ -26,7 +26,7 @@
         <Border Grid.Row="0" BorderBrush="{DynamicResource ThemeAccentColor}" BorderThickness="0,0,0,3">
 
             <Grid x:Name="LogoGrid">
-                <Image Source="/AutoLoginUspnet;component/Assets/AutoLoginUSPnet Logo_50px.png" />
+                
 
             </Grid>
 
@@ -95,7 +95,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <DataGrid ItemsSource="{Binding Books}"
+                <DataGrid x:Name="BooksDataGrid" ItemsSource="{Binding Books}"
                           Grid.RowSpan="2"
                           VerticalAlignment="Top"
                           Grid.Row="0"

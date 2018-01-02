@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
+using CsvHelper;
+using System.IO;
 
 namespace SimpleBooksCrawler.Services
 {
@@ -35,8 +37,27 @@ namespace SimpleBooksCrawler.Services
         private BooksHandler()
         {
             this.Books = new ObservableCollection<Book>();
+            this.CanExecuteMetadataCrawling = true;
+
+            this.Books.CollectionChanged += Books_CollectionChanged;
         }
 
+
+        private Boolean _CanExecuteMetadataCrawling;
+        public Boolean CanExecuteMetadataCrawling
+        {
+            get { return _CanExecuteMetadataCrawling; }
+            set
+            {
+                SetServiceProperty(ref _CanExecuteMetadataCrawling, value);
+            }
+        }
+
+
+        private void Books_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            var hehe = 1;
+        }
 
         private ObservableCollection<Book> _Books;
         public ObservableCollection<Book> Books
@@ -63,6 +84,8 @@ namespace SimpleBooksCrawler.Services
                 while (!csvParser.EndOfData)
                 {
                     Book book = new Book();
+                    book.BookState = BookState.WaitingToBeCrawled;
+
                     // Read current line fields, pointer moves to the next line.
                     string[] fields = csvParser.ReadFields();
 
@@ -90,89 +113,34 @@ namespace SimpleBooksCrawler.Services
             }
         }
 
+        public void SaveBooks()
+        {
+            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            var fileFullPath = String.Format("{0}{1}", currentDir, "saved.csv");
+            using (StreamWriter outFile = new StreamWriter(fileFullPath))
+            {
+                var csv = new CsvWriter(outFile);
+                csv.WriteRecords(this.Books);
+            }
+        }
+
         public async void CrawlMetadataAsync()
         {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36");
+            this.CanExecuteMetadataCrawling = false;
+
 
             foreach (var book in this.Books)
             {
-                HttpResponseMessage response = null;
-                try
-                {
-                    response = await client.GetAsync(String.Format("https://www.amazon.com/gp/search/ref=sr_adv_b/?search-alias=stripbooks&unfiltered=1&field-keywords=&field-author=&field-title=&field-isbn={0}&field-publisher=&node=&field-p_n_condition-type=&p_n_feature_browse-bin=&field-age_range=&field-language=&field-dateop=During&field-datemod=&field-dateyear=&sort=relevanceexprank&Adv-Srch-Books-Submit.x=52&Adv-Srch-Books-Submit.y=6", book.ISBN));
-                }
-                catch (HttpRequestException ex)
-                {
-                    MessageBox.Show(String.Format("Failed to crawl metadata. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException), "Failed to crawl metadata", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                book.BookState = BookState.OnCrawling;
 
-                String responseAsString = await response.Content.ReadAsStringAsync();
-
-                var html = new HtmlDocument();
-                html.LoadHtml(responseAsString);
-
-                // Do we have a result?
-                HtmlNode resultsListNode = html.GetElementbyId("s-results-list-atf");
-                if(resultsListNode != null)
-                {
-                    // Do we have more than one?
-                    if(resultsListNode.ChildNodes.Count == 1)
-                    {
-                        HtmlNode bookNode = resultsListNode.ChildNodes.First();
-
-                        // Details Url
-                        HtmlNode detailsUrlNode = bookNode.SelectSingleNode("//a[contains(@class, 's-access-detail-page')]");
-                        book.DetailsUrl = detailsUrlNode.Attributes.Where(attr => attr.Name == "href").First().Value;
-
-                        // Lets get all info available
-                        try
-                        {
-                            response = await client.GetAsync(String.Format(book.DetailsUrl) );
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            MessageBox.Show(String.Format("Failed to crawl metadata. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException), "Failed to crawl metadata", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-
-                        responseAsString = await response.Content.ReadAsStringAsync();
-
-                        html = new HtmlDocument();
-                        html.LoadHtml(responseAsString);
-
-                        // Get Title
-                        HtmlNode titleNode = html.GetElementbyId("productTitle");
-                        book.Title = HttpUtility.HtmlDecode(titleNode.InnerText);
-
-                        // Get Author
-                        HtmlNode authorNode = html.DocumentNode.SelectSingleNode("//span[contains(@class, 'author')][1]/span[1]/a[1]");
-                        book.Author = authorNode.InnerText;
-
-                        // Get Publisher
-                        HtmlNode publisherNode = html.DocumentNode.SelectSingleNode("//li[b='Publisher:']/text()");
-                        book.Publisher = publisherNode.InnerText.TrimStart();
-
-                        // Get Description
-                        
-                        HtmlNode descriptionNode = html.DocumentNode.SelectSingleNode("//div[@id='productDescription']//p");
-                        book.Description = descriptionNode.InnerText;
-
-                    } else
-                    {
-                        // we should warn the user and let him choose the right one
-                        book.Title = "More than one result found. Decide.";
-                    }
-
-                } else
-                {
-                    book.Title = "Not found at Amazon";
-                }
                 
+                AmazonCrawler amazonCrawler = new AmazonCrawler();
+                await amazonCrawler.CrawlBookAsync(book);
             }
 
-            
+            this.CanExecuteMetadataCrawling = true;
+
         }
 
 
