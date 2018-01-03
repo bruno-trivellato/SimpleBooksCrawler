@@ -92,13 +92,13 @@ namespace SimpleBooksCrawler.Services
         /// <returns></returns>
         private Int32 CountSearchResults(HtmlNode resultsListNode)
         {
-            if (resultsListNode != null)
+            if (resultsListNode == null || resultsListNode.ChildNodes.Count == 1)
             {
-                
-                return resultsListNode.SelectNodes("//li[contains(@class, 'sx-table-item')]").Count;
+                return 0;
             }
 
-            return 0;
+            return resultsListNode.SelectNodes("//li[contains(@class, 'sx-table-item')]").Count;
+            
         }
 
         /// <summary>

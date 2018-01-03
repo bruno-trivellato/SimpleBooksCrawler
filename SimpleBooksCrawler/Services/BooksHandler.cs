@@ -155,7 +155,7 @@ namespace SimpleBooksCrawler.Services
                     csv.WriteRecords(this.Books);
                 }
 
-                Trace.WriteLine("[Info] Crawl result saved successfully.");
+                Trace.WriteLine("[Info] Books saved successfully.");
             }
             catch (IOException ex)
             {
@@ -178,8 +178,12 @@ namespace SimpleBooksCrawler.Services
 
             foreach (var book in this.Books)
             {
-                book.BookState = BookState.OnCrawling;
+                if(book.BookState == BookState.Crawled)
+                {
+                    continue;
+                }
 
+                book.BookState = BookState.OnCrawling;
 
                 AmazonCrawler amazonCrawler = new AmazonCrawler();
                 Boolean result = await amazonCrawler.CrawlBookAsync(book);
