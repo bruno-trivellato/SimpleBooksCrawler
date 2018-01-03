@@ -116,18 +116,52 @@ namespace SimpleBooksCrawler.Services
             }
         }
 
-        
+        public void LoadSavedBooks()
+        {
+            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            var fileFullPath = String.Format("{0}{1}", currentDir, "saved.csv");
+
+            // Check if file exists
+            var savedFileMatches = Directory.GetFiles(currentDir, "saved.csv", System.IO.SearchOption.TopDirectoryOnly).Length;
+
+            if (savedFileMatches == 0)
+            {
+                Trace.Write("[Info] Not found a saved.csv file to load.");
+                return;
+            }
+
+            using (StreamReader inFile = new StreamReader(fileFullPath))
+            {
+                var csvReader = new CsvReader(inFile);
+                var books = csvReader.GetRecords<Book>();
+                foreach (var book in books)
+                {
+                    this.Books.Add(book);
+                }
+            }
+        }
 
         public void SaveBooks()
         {
             string currentDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            var fileFullPath = String.Format("{0}{1}", currentDir, "saved.csv");
-            using (StreamWriter outFile = new StreamWriter(fileFullPath))
+            try
             {
-                var csv = new CsvWriter(outFile);
-                csv.WriteRecords(this.Books);
+                var fileFullPath = String.Format("{0}{1}", currentDir, "saved.csv");
+                using (StreamWriter outFile = new StreamWriter(fileFullPath))
+                {
+                    var csv = new CsvWriter(outFile);
+                    csv.WriteRecords(this.Books);
+                }
+
+                Trace.WriteLine("[Info] Crawl result saved successfully.");
             }
+            catch (IOException ex)
+            {
+                Trace.WriteLine(String.Format("[Error] Failed to save crawl result. Message: {0}", ex.Message));
+            }
+            
         }
 
 
@@ -150,6 +184,7 @@ namespace SimpleBooksCrawler.Services
                 AmazonCrawler amazonCrawler = new AmazonCrawler();
                 Boolean result = await amazonCrawler.CrawlBookAsync(book);
 
+                // Saving the crawled result after each book cralwed
                 if(result == true)
                 {
                     await Task.Factory.StartNew( new Action( () => this.SaveBooks() ) );

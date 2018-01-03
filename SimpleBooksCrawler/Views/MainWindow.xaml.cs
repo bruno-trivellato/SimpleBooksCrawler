@@ -49,7 +49,9 @@ namespace SimpleBooksCrawler.Views
             {
                 Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
                         new Action(() => {
-                            BooksHandler.Instance.LoadBooksFromCSV(settings.AppSettings.BooksCSVPath);
+                            //BooksHandler.Instance.LoadBooksFromCSV(settings.AppSettings.BooksCSVPath);
+
+                            BooksHandler.Instance.LoadSavedBooks();
                         }));
                 
             }
