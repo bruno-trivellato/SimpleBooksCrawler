@@ -177,20 +177,21 @@ namespace SimpleBooksCrawler.Services
             return true;
         }
 
-        private void CrawlBooksTitle(HtmlDocument booksHtmlPage, Book book)
+        private Boolean CrawlBooksTitle(HtmlDocument booksHtmlPage, Book book)
         {
             HtmlNode titleNode = booksHtmlPage?.GetElementbyId("title");
             if(titleNode != null)
             {
                 book.Title = HttpUtility.HtmlDecode(titleNode.InnerText).Trim();
-            } else
-            {
-                book.Title = "NOT FOUND";
+                return true;
             }
+
+            book.Title = "NOT FOUND";
+            return false;
             
         }
 
-        private void CrawlBooksAuthor(HtmlDocument booksHtmlPage, Book book)
+        private Boolean CrawlBooksAuthor(HtmlDocument booksHtmlPage, Book book)
         {
             HtmlNode authorsNode = booksHtmlPage.GetElementbyId("byline");
             String booksAuthor = "";
@@ -206,69 +207,83 @@ namespace SimpleBooksCrawler.Services
                     // count == 16
                     booksAuthor = authorsNode.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1].InnerText.Trim();
                 }
-                
-            } else
-            {
-                booksAuthor = "NOT FOUND";
+
+                book.Author = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(booksAuthor.ToLower());
+                return true;
+
             }
 
-            book.Author = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(booksAuthor.ToLower());
-
-
+            booksAuthor = "NOT FOUND";
+            return false;
         }
 
-        private void CrawlBooksPublisher(HtmlDocument booksHtmlPage, Book book)
+        private Boolean CrawlBooksPublisher(HtmlDocument booksHtmlPage, Book book)
         {
             HtmlNode booksProductInformationTableNode = booksHtmlPage.GetElementbyId("productDetails_techSpec_section_1");
 
             if(booksProductInformationTableNode != null)
             {
                 HtmlNode publisherHeaderNode = booksProductInformationTableNode.SelectSingleNode(booksProductInformationTableNode.XPath + "//tr/th/text()[contains(.,'Publisher')]");
-                HtmlNode publisherValueNode = publisherHeaderNode.ParentNode.ParentNode.ChildNodes[3];
 
-                book.Publisher = publisherValueNode.InnerText.Trim();
-            } else
-            {
-                book.Publisher = "NOT FOUND";
+                if(publisherHeaderNode != null)
+                {
+                    HtmlNode publisherValueNode = publisherHeaderNode.ParentNode.ParentNode.ChildNodes[3];
+
+                    book.Publisher = publisherValueNode.InnerText.Trim();
+                    return true;
+                }
+                
             }
+
+            book.Publisher = "NOT FOUND";
+            return false;    
         }
 
-        private void CrawlBooksYear(HtmlDocument booksHtmlPage, Book book)
+        private Boolean CrawlBooksYear(HtmlDocument booksHtmlPage, Book book)
         {
             HtmlNode booksProductInformationTableNode = booksHtmlPage.GetElementbyId("productDetails_techSpec_section_1");
 
             if(booksProductInformationTableNode != null)
             {
                 HtmlNode yearHeaderNode = booksProductInformationTableNode.SelectSingleNode(booksProductInformationTableNode.XPath + "//tr/th/text()[contains(.,'Publication date')]");
-                HtmlNode yearValueNode = yearHeaderNode.ParentNode.ParentNode.ChildNodes[3];
 
-                String yearValueText = yearValueNode.InnerText.Trim();
+                if(yearHeaderNode != null)
+                {
+                    HtmlNode yearValueNode = yearHeaderNode.ParentNode.ParentNode.ChildNodes[3];
 
-                DateTime dateValue;
-                if( DateTime.TryParse(yearValueText, out dateValue))
-                {
-                    book.Year = dateValue.Year;
-                } else
-                {
-                    Trace.WriteLine(String.Format("[Warning] Not a date on book of ISBN: {0}. Crawled the following: '{1}'", book.ISBN, yearValueText));
+                    String yearValueText = yearValueNode.InnerText.Trim();
+
+                    DateTime dateValue;
+                    if (DateTime.TryParse(yearValueText, out dateValue))
+                    {
+                        book.Year = dateValue.Year;
+                        return true;
+                    }
+                    else
+                    {
+                        Trace.WriteLine(String.Format("[Warning] Not a date on book of ISBN: {0}. Crawled the following: '{1}'", book.ISBN, yearValueText));
+                    }
                 }
-            } else
-            {
-                //
             }
+
+            // Year not available on Amazon.com
+            return false;
             
         }
 
-        private void CrawlBooksDescription(HtmlDocument booksHtmlPage, Book book)
+        private Boolean CrawlBooksDescription(HtmlDocument booksHtmlPage, Book book)
         {
             HtmlNode booksDescriptionNode = booksHtmlPage.GetElementbyId("productDescription_fullView");
             if(booksDescriptionNode != null)
             {
                 book.Description = HttpUtility.HtmlDecode( booksDescriptionNode.ChildNodes[1].InnerText.Trim() );
-            } else
-            {
-                book.Description = "NOT FOUND";
+                return true;
             }
+
+
+            book.Description = "NOT FOUND";
+            return false;
+            
         }
         
     }
