@@ -37,9 +37,10 @@ namespace SimpleBooksCrawler.Services
         /// <returns>True if successful, false otherwise.</returns>
         public async Task<Boolean> CrawlBookAsync(Book book)
         {
+            
             HtmlNode bookNode = await FindBookNodeOnSearchPageAsync(book);
 
-            if(bookNode != null)
+            if (bookNode != null)
             {
                 String detailsUrl = FindDetailsPageUrl(bookNode);
 
@@ -48,16 +49,17 @@ namespace SimpleBooksCrawler.Services
                     book.DetailsUrl = detailsUrl;
                     Boolean crawlOutput = await CrawlBooksMetadata(book, detailsUrl);
 
-                    if(crawlOutput == true)
+                    if (crawlOutput == true)
                     {
                         book.BookState = BookState.Crawled;
                         return true;
                     }
                 }
             }
-            
+
             book.BookState = BookState.CrawlFailed;
             return false;
+
         }
         
 
@@ -70,7 +72,7 @@ namespace SimpleBooksCrawler.Services
             }
             catch (HttpRequestException ex)
             {
-                Trace.WriteLine(String.Format("Failed to crawl metadata. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException));
+                Trace.WriteLine(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
                 return null;
             }
 
@@ -119,17 +121,22 @@ namespace SimpleBooksCrawler.Services
         private async Task<HtmlNode> FindBookNodeOnSearchPageAsync(Book book)
         {
             HtmlDocument searchPageHtml = await RetrieveSearchPageHtmlAsync(book);
-            HtmlNode resultsListNode = GetResultsListNode(searchPageHtml);
-
-            Int32 searchResults = CountSearchResults(resultsListNode);
-
-            if (searchResults == 1)
+            if(searchPageHtml != null)
             {
-                return resultsListNode.SelectSingleNode("//li[contains(@class, 'sx-table-item')][1]");
-            } else if (searchResults > 1)
-            {
-                // TODO: handle if more than one book was found.
+                HtmlNode resultsListNode = GetResultsListNode(searchPageHtml);
+
+                Int32 searchResults = CountSearchResults(resultsListNode);
+
+                if (searchResults == 1)
+                {
+                    return resultsListNode.SelectSingleNode("//li[contains(@class, 'sx-table-item')][1]");
+                }
+                else if (searchResults > 1)
+                {
+                    // TODO: handle if more than one book was found.
+                }
             }
+            
 
             return null;
         }
@@ -152,7 +159,7 @@ namespace SimpleBooksCrawler.Services
             }
             catch (HttpRequestException ex)
             {
-                Trace.WriteLine(String.Format("Failed to crawl metadata. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException) );
+                Trace.WriteLine(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
                 return false;
             }
 

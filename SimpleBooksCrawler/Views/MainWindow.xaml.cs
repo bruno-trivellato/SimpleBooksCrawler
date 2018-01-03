@@ -59,12 +59,14 @@ namespace SimpleBooksCrawler.Views
             this.TraceOutputTextBox.ScrollToEnd();
         }
 
-
+        
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(this.ViewModel.LastTraceMessage))
             {
                 this.TraceOutputTextBox.AppendText(this.ViewModel.LastTraceMessage);
+                
+                
             }
 
             if (e.PropertyName == nameof(this.ViewModel.Books))

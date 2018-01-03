@@ -7,7 +7,7 @@
         xmlns:ViewModels="clr-namespace:SimpleBooksCrawler.ViewModels"
         xmlns:Views="clr-namespace:SimpleBooksCrawler.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="700">
+        Title="MainWindow" Height="400" Width="841">
 
     <Window.DataContext>
         <ViewModels:MainWindowViewModel />
@@ -48,14 +48,36 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Button x:Name="CrawlMetadata" Grid.Row="1" Grid.Column="0" Margin="5,0,0,0" Command="{Binding CrawlMetadataCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
-                    <ContentControl>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="Process_64x.png" Width="28px" />
-                            <Label Content="Crawl Metadata" />
-                        </StackPanel>
-                    </ContentControl>
-                </Button>
+                <Grid Grid.Row="1">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="CrawlMetadataButton" Grid.Row="1" Grid.Column="0" Margin="5,0,0,0" Command="{Binding CrawlMetadataCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
+                        <ContentControl>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/SimpleBooksCrawler;component/Resources2/Process_64x.png" Width="28px" />
+                                <Label Content="Crawl Metadata" />
+                            </StackPanel>
+                        </ContentControl>
+                    </Button>
+
+                    <Button x:Name="StopCrawlingButton" Grid.Row="1" Grid.Column="1" Margin="5,0,0,0" Command="{Binding StopCrawlingCommand, Mode=OneWay}" Padding="5,1" Width="150px" Height="30px">
+                        <ContentControl>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/SimpleBooksCrawler;component/Resources2/StatusCriticalError_32x.png" Width="28px" />
+                                <Label Content="Stop Crawling" />
+                            </StackPanel>
+                        </ContentControl>
+                    </Button>
+
+                    
+
+                </Grid>
+                
+                
 
                 <Grid x:Name="SettingsGrid" Grid.Row="2" VerticalAlignment="Center" Margin="0">
                     <Grid.ColumnDefinitions>
@@ -75,7 +97,7 @@
                     <Button x:Name="CSVBooksPathButton" Grid.Column="2" Margin="5,0,0,0" Command="{Binding LoadBooksCSVCommand}" Padding="5,1" Width="100">
                         <ContentControl>
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="VS2015 Image LibraryF12_Folder_28x.png" Width="28px" />
+                                <Image Source="/SimpleBooksCrawler;component/Resources2/VS2015 Image LibraryF12_Folder_28x.png" Width="28px" />
                                 <Label Content="Change" />
                             </StackPanel>
                         </ContentControl>
@@ -101,7 +123,8 @@
                           Grid.Row="0"
                           Height="{Binding ActualHeight, ElementName=RightGrid}"
                           Width="{Binding ActualWidth, ElementName=RightGrid}"
-                          AutoGenerateColumns="True">
+                          AutoGenerateColumns="True"
+                          IsEnabled="{Binding CanExecuteMetadataCrawling}">
                     
                 </DataGrid>
 

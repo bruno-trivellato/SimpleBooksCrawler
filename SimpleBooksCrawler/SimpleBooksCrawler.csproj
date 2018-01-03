@@ -131,10 +131,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Views\Process_64x.png" />
+    <Resource Include="Resources2\Process_64x.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Views\VS2015 Image LibraryF12_Folder_28x.png" />
+    <Resource Include="Resources2\VS2015 Image LibraryF12_Folder_28x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources2\StatusCriticalError_32x.png" />
+    <Resource Include="Resources2\StatusOK_32x.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

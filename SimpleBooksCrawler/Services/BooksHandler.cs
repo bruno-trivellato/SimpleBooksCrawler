@@ -12,6 +12,9 @@ using System.Web;
 using System.Windows;
 using CsvHelper;
 using System.IO;
+using System.Windows.Threading;
+using System.Threading;
+using System.Diagnostics;
 
 namespace SimpleBooksCrawler.Services
 {
@@ -113,6 +116,8 @@ namespace SimpleBooksCrawler.Services
             }
         }
 
+        
+
         public void SaveBooks()
         {
             string currentDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -125,21 +130,47 @@ namespace SimpleBooksCrawler.Services
             }
         }
 
-        public async void CrawlMetadataAsync()
-        {
-            this.CanExecuteMetadataCrawling = false;
 
+
+        public async void CrawlMetadataAsync(CancellationToken cancellationToken)
+        {
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
+                new Action(() =>
+                {
+
+                    this.CanExecuteMetadataCrawling = false;
+                    
+                }));
 
             foreach (var book in this.Books)
             {
                 book.BookState = BookState.OnCrawling;
 
-                
+
                 AmazonCrawler amazonCrawler = new AmazonCrawler();
-                await amazonCrawler.CrawlBookAsync(book);
+                Boolean result = await amazonCrawler.CrawlBookAsync(book);
+
+                if(result == true)
+                {
+                    await Task.Factory.StartNew( new Action( () => this.SaveBooks() ) );
+                }
+                
+                if (cancellationToken.IsCancellationRequested)
+                    break;
             }
 
-            this.CanExecuteMetadataCrawling = true;
+
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
+                new Action(() =>
+                {
+
+                    this.CanExecuteMetadataCrawling = true;
+
+
+
+
+                }));
+            
 
         }
 

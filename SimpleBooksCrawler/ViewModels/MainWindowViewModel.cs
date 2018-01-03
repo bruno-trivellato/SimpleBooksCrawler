@@ -10,6 +10,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Threading;
+using System.Diagnostics;
 
 namespace SimpleBooksCrawler.ViewModels
 {
@@ -37,13 +39,16 @@ namespace SimpleBooksCrawler.ViewModels
             }
         }
 
+        public CancellationTokenSource CancellationTokenSource { get; set; }
+
         private String _LastTraceMessage;
         public String LastTraceMessage
         {
             get { return _LastTraceMessage; }
             set
             {
-                SetProperty(ref _LastTraceMessage, value);
+                // Forcing event rise to fix a bug where not all messages were displayed.
+                SetProperty(ref _LastTraceMessage, value, true);
             }
         }
 
@@ -59,6 +64,32 @@ namespace SimpleBooksCrawler.ViewModels
         }
 
 
+        private RelayCommand _StopCrawlingCommand;
+
+        public RelayCommand StopCrawlingCommand
+        {
+            get
+            {
+                if (_StopCrawlingCommand == null)
+                {
+                    _StopCrawlingCommand = new RelayCommand(
+                      () =>
+                      {
+                          this.CancellationTokenSource.Cancel();
+                          Trace.WriteLine("[Info] Crawl operation canceled.");
+                      },
+                      () =>
+                      {
+                          return !this.CanExecuteMetadataCrawling;
+                      });
+                    this.PropertyChanged += (s, e) => _StopCrawlingCommand.RaiseCanExecuteChanged();
+                }
+                return _StopCrawlingCommand;
+            }
+        }
+
+
+
         private RelayCommand _CrawlMetadataCommand;
 
         public RelayCommand CrawlMetadataCommand
@@ -68,10 +99,10 @@ namespace SimpleBooksCrawler.ViewModels
                 if (_CrawlMetadataCommand == null)
                 {
                     _CrawlMetadataCommand = new RelayCommand(
-                      () =>
+                      async () =>
                       {
-
-                          BooksHandler.Instance.CrawlMetadataAsync();
+                          this.CancellationTokenSource = new CancellationTokenSource();
+                          await Task.Factory.StartNew( () => BooksHandler.Instance.CrawlMetadataAsync(this.CancellationTokenSource.Token) );
                           
                           
                       },
@@ -132,6 +163,7 @@ namespace SimpleBooksCrawler.ViewModels
             BooksHandler.Instance.ServicePropertyChanged += Instance_ServicePropertyChanged;
         }
 
+        //public int Counter { get; set; }
         private void Instance_ServicePropertyChanged(object sender, BaseService.ServicePropertyChangedEventArgs e)
         {
             
@@ -139,6 +171,7 @@ namespace SimpleBooksCrawler.ViewModels
             {
                 var message = (String)e.ServicePropertyValue;
                 this.LastTraceMessage = message;
+                //Console.WriteLine("Hit " + Counter++ + "Msg: " + message);
             }
 
 
