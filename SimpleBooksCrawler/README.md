@@ -5,7 +5,7 @@ Simple WPF application to get metadata (title, author, publisher, edition, descr
 This application was originally created to JUST get the metadata and make it easily available to 
 	import into a library system.
 	
-##Main use case scenario
+## Main use case scenario
 1. Get the ISBN through the **book's barcode** using a VNC-app in your mobile device + desktop
  * I used [SCANPET] (https://play.google.com/store/apps/details?id=com.maiko.scanpet&hl=en), a free Android app 
 2. **Add the ISBN** into the application
