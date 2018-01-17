@@ -37,7 +37,10 @@ namespace SimpleBooksCrawler.Services
         /// <returns>True if successful, false otherwise.</returns>
         public async Task<Boolean> CrawlBookAsync(Book book)
         {
-            
+            Trace.WriteLine("");
+            Trace.WriteLine("");
+            Log(String.Format("[Info] Started crawling book of ISBN: {0}", book.ISBN));
+
             HtmlNode bookNode = await FindBookNodeOnSearchPageAsync(book);
 
             if (bookNode != null)
@@ -62,18 +65,18 @@ namespace SimpleBooksCrawler.Services
 
         }
         
-
-        private async Task<HtmlDocument> RetrieveSearchPageHtmlAsync(Book book)
+        private async Task<HtmlDocument> GetAmazonHtmlPage(String requestUrl)
         {
             HttpResponseMessage response = null;
+
             try
             {
-                response = await this.httpClient.GetAsync(String.Format("https://www.amazon.com/gp/aw/s/ref=is_s?n=283155&n=283155&k={0}", book.ISBN));
+                response = await this.httpClient.GetAsync(requestUrl);
             }
             catch (HttpRequestException ex)
             {
-                Log(String.Format("[Error] Failed to retrieve search page html. {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
-                
+                Log(String.Format("[Error] Failed to get HTML page. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException));
+
                 return null;
             }
 
@@ -82,7 +85,21 @@ namespace SimpleBooksCrawler.Services
             var searchPageHtml = new HtmlDocument();
             searchPageHtml.LoadHtml(responseAsString);
 
+            // Check antibot page
+            if(searchPageHtml.DocumentNode.SelectSingleNode("//title").InnerText.Contains("Sorry!"))
+            {
+                Log(String.Format("[Error] Caught in antibot system."));
+
+                return null;
+            }
+
             return searchPageHtml;
+        }
+
+        private async Task<HtmlDocument> RetrieveSearchPageHtmlAsync(Book book)
+        {
+            return await GetAmazonHtmlPage(String.Format("https://www.amazon.com/gp/aw/s/ref=is_s?n=283155&n=283155&k={0}",
+                book.ISBN));
 
         }
 
@@ -168,31 +185,20 @@ namespace SimpleBooksCrawler.Services
 
         private async Task<Boolean> CrawlBooksMetadata(Book book, String detailsUrl)
         {
-            HttpResponseMessage response = null;
-            // Lets get all info available
-            try
+            HtmlDocument html = await GetAmazonHtmlPage(String.Format(book.DetailsUrl));
+
+            if(html != null)
             {
-                response = await this.httpClient.GetAsync(String.Format(book.DetailsUrl));
+                CrawlBooksTitle(html, book);
+                CrawlBooksAuthor(html, book);
+                CrawlBooksPublisher(html, book);
+                CrawlBooksYear(html, book);
+                CrawlBooksDescription(html, book);
+
+                return true;
             }
-            catch (HttpRequestException ex)
-            {
-
-                Log(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
-                return false;
-            }
-
-            String responseAsString = await response.Content.ReadAsStringAsync();
-
-            HtmlDocument html = new HtmlDocument();
-            html.LoadHtml(responseAsString);
-
-            CrawlBooksTitle(html, book);
-            CrawlBooksAuthor(html, book);
-            CrawlBooksPublisher(html, book);
-            CrawlBooksYear(html, book);
-            CrawlBooksDescription(html, book);
-
-            return true;
+            
+            return false;
         }
 
         private Boolean CrawlBooksTitle(HtmlDocument booksHtmlPage, Book book)
