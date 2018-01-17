@@ -15,7 +15,7 @@ namespace SimpleBooksCrawler.Services
     /// <summary>
     /// Represents a crawler for the Amazon.com website that will crawl for a specific book at a time.
     /// </summary>
-    public class AmazonCrawler : ICrawler
+    public class AmazonCrawler : Crawler, ICrawler
     {
         private HttpClient httpClient;
 
@@ -72,7 +72,8 @@ namespace SimpleBooksCrawler.Services
             }
             catch (HttpRequestException ex)
             {
-                Trace.WriteLine(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
+                Log(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
+                
                 return null;
             }
 
@@ -134,6 +135,11 @@ namespace SimpleBooksCrawler.Services
                 else if (searchResults > 1)
                 {
                     // TODO: handle if more than one book was found.
+                    Log(String.Format("[ISBN: {0}] [Error] More than one result list was found.", book.ISBN));
+                    
+                } else
+                {
+                    Log(String.Format("[ISBN: {0}] [Error] No result was found.", book.ISBN));
                 }
             }
             
@@ -159,7 +165,8 @@ namespace SimpleBooksCrawler.Services
             }
             catch (HttpRequestException ex)
             {
-                Trace.WriteLine(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
+
+                Log(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
                 return false;
             }
 
@@ -261,7 +268,8 @@ namespace SimpleBooksCrawler.Services
                     }
                     else
                     {
-                        Trace.WriteLine(String.Format("[Warning] Not a date on book of ISBN: {0}. Crawled the following: '{1}'", book.ISBN, yearValueText));
+
+                        Log(String.Format("[Warning] Not a date on book of ISBN: {0}. Crawled the following: '{1}'", book.ISBN, yearValueText));
                     }
                 }
             }

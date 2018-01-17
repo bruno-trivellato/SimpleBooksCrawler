@@ -10,5 +10,7 @@ namespace SimpleBooksCrawler.Services
     public interface ICrawler
     {
         Task<Boolean> CrawlBookAsync(Book book);
+
+
     }
 }

@@ -94,6 +94,7 @@
     <Compile Include="Services\AmazonCrawler.cs" />
     <Compile Include="Services\BaseService.cs" />
     <Compile Include="Services\BooksHandler.cs" />
+    <Compile Include="Services\Crawler.cs" />
     <Compile Include="Services\ICrawler.cs" />
     <Compile Include="Services\SettingsHandler.cs" />
     <Compile Include="Services\TraceHandler.cs" />
