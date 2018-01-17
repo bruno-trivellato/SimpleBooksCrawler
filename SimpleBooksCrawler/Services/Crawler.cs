@@ -17,6 +17,7 @@ namespace SimpleBooksCrawler.Services
             Trace.WriteLine(String.Format("[{0}] {1}", this.GetType().Name, message));
             
         }
+    
         
 
         protected virtual void SaveFailedCrawl(HtmlDocument htmlDocument, Book book)

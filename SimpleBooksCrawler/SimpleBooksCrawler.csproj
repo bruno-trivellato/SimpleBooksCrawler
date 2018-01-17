@@ -141,5 +141,10 @@
     <Resource Include="Resources2\StatusCriticalError_32x.png" />
     <Resource Include="Resources2\StatusOK_32x.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="mobile user agent strings.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

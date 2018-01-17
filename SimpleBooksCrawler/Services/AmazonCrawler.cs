@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using SimpleBooksCrawler.Common;
 using SimpleBooksCrawler.Models;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace SimpleBooksCrawler.Services
         public AmazonCrawler()
         {
             this.httpClient = new HttpClient();
-            this.httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
+            this.httpClient.DefaultRequestHeaders.Add("User-Agent", HttpRequestHelper.Instance.GetRandomMobileUserAgentString());
 
         }
 
@@ -71,6 +72,7 @@ namespace SimpleBooksCrawler.Services
 
             try
             {
+                Trace.WriteLine(String.Format("User Agent on request: {0}", this.httpClient.DefaultRequestHeaders.UserAgent));
                 response = await this.httpClient.GetAsync(requestUrl);
             }
             catch (HttpRequestException ex)

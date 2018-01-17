@@ -1,4 +1,5 @@
-﻿using SimpleBooksCrawler.Services;
+﻿using SimpleBooksCrawler.Common;
+using SimpleBooksCrawler.Services;
 using SimpleBooksCrawler.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -52,12 +53,11 @@ namespace SimpleBooksCrawler.Views
                             //BooksHandler.Instance.LoadBooksFromCSV(settings.AppSettings.BooksCSVPath);
 
                             BooksHandler.Instance.LoadSavedBooks();
+                            HttpRequestHelper.Instance.LoadMobileUserAgentStrings();
                         }));
                 
             }
             
-
-
             this.TraceOutputTextBox.ScrollToEnd();
         }
 
