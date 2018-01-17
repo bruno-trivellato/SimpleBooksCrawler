@@ -23,7 +23,7 @@ namespace SimpleBooksCrawler.Services
         {
             string currentDir = AppDomain.CurrentDomain.BaseDirectory;
             string failedCrawlsDirectory = String.Format("{0}Failed Crawls\\", currentDir);
-            string fileName = String.Format("{0} - ISBN {1}", DateTime.Now.ToString("yyyyMMddHHmmssfff"), book.ISBN);
+            string fileName = String.Format("{0} - ISBN {1}.html", DateTime.Now.ToString("yyyyMMddHHmmssfff"), book.ISBN);
             string fileFullPath = String.Format("{0}{1}", failedCrawlsDirectory, fileName);
 
             try
