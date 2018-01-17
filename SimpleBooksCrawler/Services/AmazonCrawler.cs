@@ -72,7 +72,7 @@ namespace SimpleBooksCrawler.Services
             }
             catch (HttpRequestException ex)
             {
-                Log(String.Format("Failed to crawl metadata on book {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
+                Log(String.Format("[Error] Failed to retrieve search page html. {2}. Exception: {0}. InnerException: {1}", ex.Message, ex.InnerException, book.ISBN));
                 
                 return null;
             }
@@ -93,7 +93,7 @@ namespace SimpleBooksCrawler.Services
         /// <returns></returns>
         private Int32 CountSearchResults(HtmlNode resultsListNode)
         {
-            if (resultsListNode == null || resultsListNode.ChildNodes.Count == 1)
+            if (resultsListNode.ChildNodes.Count == 1)
             {
                 return 0;
             }
@@ -126,21 +126,32 @@ namespace SimpleBooksCrawler.Services
             {
                 HtmlNode resultsListNode = GetResultsListNode(searchPageHtml);
 
-                Int32 searchResults = CountSearchResults(resultsListNode);
+                if(resultsListNode != null)
+                {
+                    Int32 searchResults = CountSearchResults(resultsListNode);
 
-                if (searchResults == 1)
-                {
-                    return resultsListNode.SelectSingleNode("//li[contains(@class, 'sx-table-item')][1]");
-                }
-                else if (searchResults > 1)
-                {
-                    // TODO: handle if more than one book was found.
-                    Log(String.Format("[ISBN: {0}] [Error] More than one result list was found.", book.ISBN));
-                    
+                    if (searchResults == 1)
+                    {
+                        return resultsListNode.SelectSingleNode("//li[contains(@class, 'sx-table-item')][1]");
+                    }
+                    else if (searchResults > 1)
+                    {
+                        // TODO: handle if more than one book was found.
+                        Log(String.Format("[ISBN: {0}] [Warning] More than one result list was found.", book.ISBN));
+                        SaveFailedCrawl(searchPageHtml, book);
+
+                    }
+                    else if (searchResults == 0)
+                    {
+                        Log(String.Format("[ISBN: {0}] [Warning] No result was found.", book.ISBN));
+                        SaveFailedCrawl(searchPageHtml, book);
+                    }
                 } else
                 {
-                    Log(String.Format("[ISBN: {0}] [Error] No result was found.", book.ISBN));
+                    Log(String.Format("[ISBN: {0}] [Error] Results List Node wasn't found on page.", book.ISBN));
+                    SaveFailedCrawl(searchPageHtml, book);
                 }
+
             }
             
 
